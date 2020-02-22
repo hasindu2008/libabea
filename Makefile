@@ -4,6 +4,12 @@ CFLAGS   += -g  -Wall -O2 -std=c++11
 LDFLAGS  += $(LIBS) 
 BUILD_DIR = .
 BINARY = abea
+
+ifdef asan
+	CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+	LDFLAGS += -fsanitize=address -fno-omit-frame-pointer
+endif
+
 OBJ = main.o \
 	  f5c.o \
       events.o \
@@ -14,7 +20,7 @@ OBJ = main.o \
 $(BINARY): $(OBJ)
 	$(CXX) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
 
-$(BUILD_DIR)/main.o: main.c f5c.h 
+$(BUILD_DIR)/main.o: main.c f5c.h example.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 $(BUILD_DIR)/f5c.o: f5c.c f5c.h 
