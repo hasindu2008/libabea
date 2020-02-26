@@ -22,15 +22,17 @@ cmdclass.update({'build_ext': build_ext})
 packages=['test']
 
 ext_modules = [Extension("test.abea", 
-                     ["abea.c", "align.c", "events.c", "f5c.c", "model.c",
-                      "abea.pyx"],
+                     ["libabea.c", "align.c", "events.c", "f5c.c", "model.c",
+                      "abea.pyx"], 
+                      language="c++",
+                      extra_compile_args="-std=c++11 ", 
                       libraries=math_lib,
                       include_dirs=py_inc + np_inc)]
 
 setup(name = 'test',
       version='0.0.1',
       requires=['numpy (>=1.3.0)'],
-      description='dtw2 - dtw algorithm',
+      description='abea',
       author='H',
       author_email='H',
       maintainer='H',

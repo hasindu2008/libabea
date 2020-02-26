@@ -74,4 +74,5 @@ test/ecoli_2kb_region/reads.fasta.index.readdb
 /profile.nvprof
 /abea.c
 /abea
+/abea.cpp
 
