@@ -1,6 +1,6 @@
 CC       = gcc
 CXX      = g++
-CFLAGS   += -g  -Wall -O2 -std=c++11 
+CFLAGS   += -g  -Wall -O2 -std=c++11
 LDFLAGS  += $(LIBS) 
 BUILD_DIR = .
 BINARY = abea
@@ -20,22 +20,22 @@ OBJ =   main.o \
 $(BINARY): $(OBJ)
 	$(CXX) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
 
-$(BUILD_DIR)/main.o: main.c f5c.h example.h
+$(BUILD_DIR)/main.o: main.cpp f5c.h example.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/libabea.o: libabea.c libabea.h f5c.h
+$(BUILD_DIR)/libabea.o: libabea.cpp libabea.h f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/f5c.o: f5c.c f5c.h 
+$(BUILD_DIR)/f5c.o: f5c.cpp f5c.h 
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/events.o: events.c f5c.h  ksort.h
+$(BUILD_DIR)/events.o: events.cpp f5c.h  ksort.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/model.o: model.c model.h f5c.h
+$(BUILD_DIR)/model.o: model.cpp model.h f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/align.o: align.c f5c.h 
+$(BUILD_DIR)/align.o: align.cpp f5c.h 
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean: 

@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <unistd.h>
-
+#include <stdbool.h>
 
 /* hard coded numbers*/
 #define KMER_SIZE 6 //hard coded for now; todo : change to dynamic?

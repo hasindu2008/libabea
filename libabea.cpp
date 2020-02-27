@@ -113,6 +113,23 @@ void set_output(abea_out_t *output, core_t *core, db_t *db){
     
 void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t n_samples, float *samples, float digitisation, float offset, float range, float sample_rate, int8_t debug){
   
+    if(debug){
+        fprintf(stderr,"readlen %d\n",read_len);
+        fprintf(stderr,"n_samples %d\n",n_samples);
+        fprintf(stderr,"digitisation %f\n",digitisation);
+        fprintf(stderr,"offset %f\n",offset);
+        fprintf(stderr,"range %f\n",range);
+        fprintf(stderr,"sample_rate %f\n",sample_rate);
+        fprintf(stderr,"read %s\n",read);
+        for(int i=0;i<n_samples;i++){
+            fprintf(stderr,"%f ",samples[i]);
+        }
+        fprintf(stderr,"\n");
+        fprintf(stderr,"huh\n");
+
+
+    }
+
     /************************** init - done once **********************************/
     opt_t opt;
     init_opt(&opt); //initialise options to defaults
@@ -149,6 +166,10 @@ void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t 
     db->f5[i]->offset = offset;
     db->f5[i]->range = range;
     db->f5[i]->sample_rate = sample_rate;
+
+    if(debug){
+        fprintf(stderr,"Going to process\n");
+    }
 
     //do abea
     process_single(core,db,0);

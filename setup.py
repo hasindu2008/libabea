@@ -6,11 +6,12 @@ import os.path
 import numpy
 from distutils.command.build_py import build_py
 from Cython.Distutils import build_ext
+from Cython.Build import cythonize
 
 
 math_lib = ['m']
 
-extra_compile_args = ['-Wno-strict-prototypes']
+#extra_compile_args = ['-Wno-strict-prototypes']
 
 py_inc = [get_python_inc()]
 
@@ -21,11 +22,15 @@ cmdclass = {'build_py': build_py}
 cmdclass.update({'build_ext': build_ext})
 packages=['test']
 
-ext_modules = [Extension("test.abea", 
-                     ["libabea.c", "align.c", "events.c", "f5c.c", "model.c",
-                      "abea.pyx"], 
-                      language="c++",
-                      extra_compile_args="-std=c++11 ", 
+# ext_modules = [Extension("test.abea", 
+#                      ["libabea.c", "align.cpp", "events.cpp", "f5c.cpp", "model.cpp",
+#                       "abea.pyx"], 
+#                       extra_compile_args=["-std=c++11"], 
+#                       libraries=math_lib,
+#                       include_dirs=py_inc + np_inc)]
+
+extensions = [Extension("test.abea", ["abea.pyx", "libabea.cpp", "align.cpp", "events.cpp", "f5c.cpp", "model.cpp"],
+                      extra_compile_args=["-std=c++11"], 
                       libraries=math_lib,
                       include_dirs=py_inc + np_inc)]
 
@@ -39,6 +44,6 @@ setup(name = 'test',
       maintainer_email='H',
       packages=packages,
       cmdclass=cmdclass,
-      ext_modules=ext_modules,
+      ext_modules=cythonize(extensions),
       )
 
