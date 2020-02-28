@@ -16,11 +16,10 @@ int main(int argc, char* argv[]) {
     
     run_abea_on_read(output, READ_LEN, READ, N_SAMPLES, SAMPLES, DIGITISATION, OFFSET, RANGE, SAMPLE_RATE, 0);
 
-    fprintf(stdout,"base_index\tstart_raw_index(inclusive)\tend_raw_index(non inclusive)\n");
+    fprintf(stdout,"base_index\tstart_raw_index(inclusive)\tend_raw_index(non_inclusive)\n");
     for(int i=0; i<output->size_of_arrays; i++){
         fprintf(stdout,"%d\t%ld\t%ld\n",output->base_index[i],output->raw_start_index[i],output->raw_end_index[i]);
     }
-
 
     free(output->base_index);
     free(output->raw_start_index);

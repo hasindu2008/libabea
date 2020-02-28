@@ -111,7 +111,7 @@ void free_db_tmp(db_t* db) {
 }
 
 void free_db(db_t* db) {
-    int32_t i = 0;
+    //int32_t i = 0;
 
     free(db->read);
     free(db->read_len);

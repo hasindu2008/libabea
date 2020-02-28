@@ -1,9 +1,16 @@
 #!/bin/bash
 
-python3 setup.py clean
-make clean
+make clean 
 make
-python3 setup.py build && cp build/lib.linux-x86_64-3.5/test/abea.cpython-35m-x86_64-linux-gnu.so ./ && python3 test.py
+make pylib
+
+echo "C test"
+./abea_example > out.txt || echo "execution fail"
+diff test/stdout.exp out.txt || echo "C test failed"
+
+echo "Python test"
+python3 example.py | tr -d '[],' | tr ' ' '\t' >  outpy.txt || echo "execution fail"
+diff test/stdout.exp outpy.txt || echo "Python test failed"
 
 
 

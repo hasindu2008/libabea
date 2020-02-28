@@ -11,19 +11,13 @@ from libabea cimport *
 
 np.import_array()
 
-
 def abea_python(read,  samples, digitisation, offset, range, sample_rate):
 
     samples_floats = [float(i) for i in samples]
     cdef np.ndarray[np.float32_t,ndim=1] samples_array
     samples_array = np.ascontiguousarray(samples_floats, dtype=np.float32)
-    print("samples:", samples[:3], samples_floats[:3], samples_array[:3], sep="\t")
 
-
-    # cdef np.ndarray[np.int8_t,ndim=1] read_array
-    # read_array = np.ascontiguousarray(read, dtype=np.str) 
     cdef read_array = str.encode(read)
-
     READ_LEN = len(read)
 
     cdef abea_out_t *output = <abea_out_t *> malloc(sizeof(abea_out_t))
@@ -31,11 +25,9 @@ def abea_python(read,  samples, digitisation, offset, range, sample_rate):
     output.raw_start_index = <int64_t *> malloc(sizeof(int64_t)*READ_LEN)
     output.raw_end_index = <int64_t *> malloc(sizeof(int64_t)*READ_LEN)
 
-
     run_abea_on_read(<abea_out_t *> output, <int32_t> READ_LEN, <char *> read_array, <int64_t> samples_array.shape[0], <float *> samples_array.data, <float> digitisation, <float> offset, <float> range, <float> sample_rate, <int8_t> 0)
 
     ret = {}
-
     if output.align_success:
         for i in xrange(output.size_of_arrays):
             ret[i] = [output.base_index[i], output.raw_start_index[i], output.raw_end_index[i]]
@@ -46,7 +38,6 @@ def abea_python(read,  samples, digitisation, offset, range, sample_rate):
     free(output.raw_start_index)
     free(output.raw_end_index)
     free(output)
-
 
     return ret
 

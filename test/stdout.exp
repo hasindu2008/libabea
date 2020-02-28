@@ -1,4 +1,4 @@
-base_index	start_raw_index(inclusive)	end_raw_index(non inclusive)
+base_index	start_raw_index(inclusive)	end_raw_index(non_inclusive)
 2	71	77
 3	77	97
 4	97	102

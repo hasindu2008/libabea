@@ -63,7 +63,7 @@ void print(core_t *core, db_t *db){
             int32_t raw_end = -1;
 
             if(event_start!=-1){
-                raw_start = (int32_t)db->et[i].event[event_start].start; //raw signal inde start
+                raw_start = (int32_t)db->et[i].event[event_start].start; //raw signal index start
             }
             
 
@@ -115,7 +115,7 @@ void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t 
   
     if(debug){
         fprintf(stderr,"readlen %d\n",read_len);
-        fprintf(stderr,"n_samples %d\n",n_samples);
+        fprintf(stderr,"n_samples %ld\n",n_samples);
         fprintf(stderr,"digitisation %f\n",digitisation);
         fprintf(stderr,"offset %f\n",offset);
         fprintf(stderr,"range %f\n",range);
@@ -144,7 +144,7 @@ void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t 
     db->n_bam_rec=1;
     int i=0; //index of the read in batch - always 0 for now until expansion
 
-	assert(read_len==strlen(read));
+	assert(read_len==(int32_t)strlen(read));
 
 
 /***************** Process a single read  *********************************/
