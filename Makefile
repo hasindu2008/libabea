@@ -1,7 +1,7 @@
 CC       = gcc
 CXX      = g++
 CFLAGS   += -g  -Wall -O2 -std=c++11
-LDFLAGS  += $(LIBS) 
+LDFLAGS  += $(LIBS)
 BUILD_DIR = .
 BINARY = abea_example
 
@@ -15,7 +15,7 @@ OBJ =   example.o \
         f5c.o \
         events.o \
         model.o \
-        align.o 
+        align.o
 
 $(BINARY): $(OBJ)
 	$(CXX) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
@@ -26,7 +26,7 @@ $(BUILD_DIR)/example.o: example.cpp f5c.h example.h
 $(BUILD_DIR)/libabea.o: libabea.cpp libabea.h f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/f5c.o: f5c.cpp f5c.h 
+$(BUILD_DIR)/f5c.o: f5c.cpp f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 $(BUILD_DIR)/events.o: events.cpp f5c.h  ksort.h
@@ -35,19 +35,17 @@ $(BUILD_DIR)/events.o: events.cpp f5c.h  ksort.h
 $(BUILD_DIR)/model.o: model.cpp model.h f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-$(BUILD_DIR)/align.o: align.cpp f5c.h 
+$(BUILD_DIR)/align.o: align.cpp f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 pylib:
-	python3 setup.py build && cp build/lib.linux-x86_64-3.5/test/abea.cpython-35m-x86_64-linux-gnu.so ./
+	# python3 setup.py build && cp build/lib.linux-x86_64-3.5/test/abea.cpython-35m-x86_64-linux-gnu.so ./
+	python3 setup.py build && cp build/lib.linux-x86_64-3.6/test/abea.cpython-36m-x86_64-linux-gnu.so ./
 
-clean: 
+clean:
 	rm -rf $(BINARY) $(BUILD_DIR)/*.o
 	python3 setup.py clean
 	rm -rf build
-	rm -f abea.cpython-35m-x86_64-linux-gnu.so
+	# rm -f abea.cpython-35m-x86_64-linux-gnu.so
+	rm -f abea.cpython-36m-x86_64-linux-gnu.so
 	rm -f out.txt outpy.txt
-
-
-
-
