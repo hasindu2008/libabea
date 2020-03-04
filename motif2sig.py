@@ -175,7 +175,7 @@ def read_seq_sum(filename, f5_path):
                 for i in range(len(l)):
                     if l[i] == "mean_qscore_template":
                         qscore_col = i
-                    if l[i] == "filename_fast5":
+                    if l[i] in ["filename_fast5", "filename"]:
                         fast5_col = i
                     if l[i] == "read_id"
                         readID_col = i
