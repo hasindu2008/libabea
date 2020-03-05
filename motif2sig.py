@@ -209,7 +209,7 @@ def read_fastq(filename, batch=1):
                 s = l.split(' ')
                 idx = s[0][1:]
                 k = [i.split('=') for i in s]
-                dic[idx] = {keys: None for k in keys}
+                dic[idx] = {k: None for k in keys}
                 for i in range(len(k)):
                     if k[i][0] in ["rev_bc", "fwd_bc"]:
                         dic[idx]['barcode'] = k[i][1]
@@ -243,7 +243,7 @@ def read_fastq(filename, batch=1):
                 if b >= batch:
                     yield dic
                     b = 0
-                    dic = {keys: None for k in keys}
+                    dic = {}
 
 
 
