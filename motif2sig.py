@@ -3,6 +3,8 @@ import os
 import argparse
 import numpy as np
 import abea
+import h5py
+import matplotlib.pyplot as plt
 
 '''
 
@@ -90,6 +92,8 @@ def main():
                         help="input sequencing_summary file")
     parser.add_argument("-p", "--fast5",
                         help="fast5 file top path")
+    parser.add_argument("-q", "--squiggle",
+                        help="print squiggles to this file")
 
     parser.add_argument("-v", "--verbose", type=int, default=1,
                         help="Engage higher output verbosity")
@@ -123,21 +127,29 @@ def main():
 
     print("readID", "barcode", "cell", "score", "direction", "seq_length", "nt_start",
           "nt_stop", "raw_start", "raw_stop", sep="\t")
+    if args.squiggle:
+        w = open(args.squiggle, 'w')
     for data in fastq_data:
-        for readID in list(data.keys):
+        for readID in list(data.keys()):
             # cut out stop/start co-ords for raw signal, and dump into file
-
+            # print(data)
             fast5_filename = reads2fast5[readID][0]
             fast5_filepath = reads2fast5[readID][1]
             f5_data = read_multi_fast5(fast5_filepath)
-            segs = get_segments(readID, data['seq'], f5_data['signal'],
-                                f5_data['digitisation'], f5_data['offset'],
-                                f5_data['range'], f5_data['sampling_rate'])
-
+            segs = get_segments(readID, data[readID]['seq'], f5_data[readID]['signal'],
+                                f5_data[readID]['digitisation'], f5_data[readID]['offset'],
+                                f5_data[readID]['range'], f5_data[readID]['sampling_rate'])
+            if segs is None:
+                print_err("Failed alignment: {}".format(readID))
+                continue
             nt_start = data[readID]['start']
             nt_stop = data[readID]['stop']
             raw_start = segs[nt_start][1]
+            if raw_start < 0:
+                raw_start = segs[nt_start-1][2]
             raw_stop = segs[nt_stop][2]
+            if raw_stop < 0:
+                raw_stop = segs[nt_stop+1][1]
 
             seq_length = data[readID]['seq_length']
             barcode = data[readID]['barcode']
@@ -148,8 +160,27 @@ def main():
             # readID, nt_start, nt_stop, raw_start, raw_stop
             print(readID, barcode, cell, score, direction, seq_length, nt_start,
                   nt_stop, raw_start, raw_stop, sep="\t")
+            if args.squiggle:
+                ar = []
+                for i in f5_data[readID]['signal']:
+                    ar.append(str(i))
+                w.write("{}\t{}\n".format(readID, '\t'.join(ar)))
             # plot seg cuts to visualise, I should be able to confirm with JNN
-
+            fast5_filename = None
+            fast5_filepath = None
+            f5_data = None
+            segs = None
+            nt_start = None
+            nt_stop = None
+            raw_start = None
+            raw_stop = None
+            seq_length = None
+            barcode = None
+            cell = None
+            score = None
+            direction = None
+    if args.squiggle:
+        w.close()
 
 
 def read_seq_sum(filename, f5_path):
@@ -204,11 +235,14 @@ def read_fastq(filename, batch=1):
         for ln in f:
             c += 1
             l = ln.strip('\n')
+            # print_err("read_fastq: c={}".format(c))
+            # print_err("read_fastq: l={}".format(l))
             if c == 1:
                 b += 1
                 s = l.split(' ')
                 idx = s[0][1:]
                 k = [i.split('=') for i in s]
+                dic[idx] = {}
                 dic[idx] = {k: None for k in keys}
                 for i in range(len(k)):
                     if k[i][0] in ["rev_bc", "fwd_bc"]:
@@ -222,10 +256,10 @@ def read_fastq(filename, batch=1):
                     elif k[i][0] in ["end"]:
                         dic[idx]['stop'] = int(k[i][1])
                     elif k[i][0] in ["rev_trimmed"]:
-                        dic[idx]['seq'] = int(k[i][1])
+                        dic[idx]['seq'] = k[i][1]
                         dic[idx]['direction'] = "rev"
                     elif k[i][0] in ["fwd_trimmed"]:
-                        dic[idx]['seq'] = int(k[i][1])
+                        dic[idx]['seq'] = k[i][1]
                         dic[idx]['direction'] = "fwd"
 
 
@@ -235,9 +269,16 @@ def read_fastq(filename, batch=1):
                 elif dic[idx]['direction'] == "fwd":
                     dic[idx]['seq'] = dic[idx]['seq'] + l
                 else:
-                    print_err("read_fastq: direction variable not valid: {}".format(direction))
+                    print_err("read_fastq: direction variable not valid: {} - {}".format(idx, dic[idx]['direction']))
+                    # print_err("read_fastq: {}".format(dic))
+                    # print_err("read_fastq: c={}".format(c))
+                    # print_err("read_fastq: b={}".format(b))
+                    # print_err("read_fastq: idx={}".format(idx))
+                    # print_err("read_fastq: ln={}".format(ln))
+
 
                 dic[idx]['seq_length'] = len(dic[idx]['seq'])
+
             if c >= 4:
                 c = 0
                 if b >= batch:
@@ -254,17 +295,18 @@ def read_multi_fast5(filename):
     f5_dic = {}
     with h5py.File(filename, 'r') as hdf:
         for read in list(hdf.keys()):
-            f5_dic[read] = {'signal': [], 'readID': '', 'digitisation': 0.0,
+            readID = hdf[read]['Raw'].attrs['read_id'].decode()
+            f5_dic[readID] = {'signal': [], 'readID': '', 'digitisation': 0.0,
                             'offset': 0.0, 'range': 0.0, 'sampling_rate': 0.0}
             try:
                 for col in hdf[read]['Raw/Signal'][()]:
-                    f5_dic[read]['signal'].append(int(col))
+                    f5_dic[readID]['signal'].append(int(col))
 
-                f5_dic[read]['readID'] = hdf[read]['Raw'].attrs['read_id'].decode()
-                f5_dic[read]['digitisation'] = hdf[read]['channel_id'].attrs['digitisation']
-                f5_dic[read]['offset'] = hdf[read]['channel_id'].attrs['offset']
-                f5_dic[read]['range'] = float("{0:.2f}".format(hdf[read]['channel_id'].attrs['range']))
-                f5_dic[read]['sampling_rate'] = hdf[read]['channel_id'].attrs['sampling_rate']
+                f5_dic[readID]['readID'] = hdf[read]['Raw'].attrs['read_id'].decode()
+                f5_dic[readID]['digitisation'] = hdf[read]['channel_id'].attrs['digitisation']
+                f5_dic[readID]['offset'] = hdf[read]['channel_id'].attrs['offset']
+                f5_dic[readID]['range'] = float("{0:.2f}".format(hdf[read]['channel_id'].attrs['range']))
+                f5_dic[readID]['sampling_rate'] = hdf[read]['channel_id'].attrs['sampling_rate']
             except:
                 traceback.print_exc()
                 print_err("extract_fast5():failed to read readID: {}".format(read))
@@ -273,13 +315,13 @@ def read_multi_fast5(filename):
 def get_segments(readID, seq, SAMPLES, DIGITISATION, OFFSET, RANGE, SAMPLE_RATE):
 
     ret = abea.abea_python(seq, SAMPLES, DIGITISATION, OFFSET, RANGE, SAMPLE_RATE)
-    print ("base_index start_raw_index(inclusive) end_raw_index(non_inclusive)")
+    # print ("base_index start_raw_index(inclusive) end_raw_index(non_inclusive)")
     if 'FAIL' in ret:
         print_err("get_segments: failed to get alignment: {}".format(readID))
         # sys.exit()
         return None
 
-    return dic
+    return ret
 
 
 
