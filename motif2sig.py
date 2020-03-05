@@ -123,31 +123,32 @@ def main():
 
     print("readID", "barcode", "cell", "score", "direction", "seq_length", "nt_start",
           "nt_stop", "raw_start", "raw_stop", sep="\t")
-    for readID, data in list(fastq_data.keys):
-        # cut out stop/start co-ords for raw signal, and dump into file
+    for data in fastq_data:
+        for readID in list(data.keys):
+            # cut out stop/start co-ords for raw signal, and dump into file
 
-        fast5_filename = reads2fast5[readID][0]
-        fast5_filepath = reads2fast5[readID][1]
-        f5_data = read_multi_fast5(fast5_filepath)
-        segs = get_segments(readID, data['seq'], f5_data['signal'],
-                            f5_data['digitisation'], f5_data['offset'],
-                            f5_data['range'], f5_data['sampling_rate'])
+            fast5_filename = reads2fast5[readID][0]
+            fast5_filepath = reads2fast5[readID][1]
+            f5_data = read_multi_fast5(fast5_filepath)
+            segs = get_segments(readID, data['seq'], f5_data['signal'],
+                                f5_data['digitisation'], f5_data['offset'],
+                                f5_data['range'], f5_data['sampling_rate'])
 
-        nt_start = data['start']
-        nt_stop = data['stop']
-        raw_start = segs[nt_start][1]
-        raw_stop = segs[nt_stop][2]
+            nt_start = data[readID]['start']
+            nt_stop = data[readID]['stop']
+            raw_start = segs[nt_start][1]
+            raw_stop = segs[nt_stop][2]
 
-        seq_length = data['seq_length']
-        barcode = data['barcode']
-        cell = data['cell']
-        score = data['score']
-        direction = data['direction']
+            seq_length = data[readID]['seq_length']
+            barcode = data[readID]['barcode']
+            cell = data[readID]['cell']
+            score = data[readID]['score']
+            direction = data[readID]['direction']
 
-        # readID, nt_start, nt_stop, raw_start, raw_stop
-        print(readID, barcode, cell, score, direction, seq_length, nt_start,
-              nt_stop, raw_start, raw_stop, sep="\t")
-        # plot seg cuts to visualise, I should be able to confirm with JNN
+            # readID, nt_start, nt_stop, raw_start, raw_stop
+            print(readID, barcode, cell, score, direction, seq_length, nt_start,
+                  nt_stop, raw_start, raw_stop, sep="\t")
+            # plot seg cuts to visualise, I should be able to confirm with JNN
 
 
 
@@ -240,7 +241,7 @@ def read_fastq(filename, batch=1):
             if c >= 4:
                 c = 0
                 if b >= batch:
-                    yield idx, dic
+                    yield dic
                     b = 0
                     dic = {keys: None for k in keys}
 
