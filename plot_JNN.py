@@ -21,7 +21,8 @@ import numpy as np
 
 
     TODO:
-        -
+        - Take the whole array of segments, and overlay it on the raw signal
+        - Makes for a good figure
 
     ----------------------------------------------------------------------------
     MIT License

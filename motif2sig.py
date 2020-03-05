@@ -94,6 +94,8 @@ def main():
                         help="fast5 file top path")
     parser.add_argument("-q", "--squiggle",
                         help="print squiggles to this file")
+    parser.add_argument("-t", "--test", type=int, default=0,
+                        help="number of reads to process when testing")
 
     parser.add_argument("-v", "--verbose", type=int, default=1,
                         help="Engage higher output verbosity")
@@ -129,13 +131,17 @@ def main():
           "nt_stop", "raw_start", "raw_stop", sep="\t")
     if args.squiggle:
         w = open(args.squiggle, 'w')
+    count = 0
     for data in fastq_data:
         for readID in list(data.keys()):
+            if args.test:
+                if count >= args.test:
+                    break
             # cut out stop/start co-ords for raw signal, and dump into file
             # print(data)
             fast5_filename = reads2fast5[readID][0]
             fast5_filepath = reads2fast5[readID][1]
-            f5_data = read_multi_fast5(fast5_filepath)
+            f5_data = read_multi_fast5(fast5_filepath, readID)
             segs = get_segments(readID, data[readID]['seq'], f5_data[readID]['signal'],
                                 f5_data[readID]['digitisation'], f5_data[readID]['offset'],
                                 f5_data[readID]['range'], f5_data[readID]['sampling_rate'])
@@ -160,6 +166,7 @@ def main():
             # readID, nt_start, nt_stop, raw_start, raw_stop
             print(readID, barcode, cell, score, direction, seq_length, nt_start,
                   nt_stop, raw_start, raw_stop, sep="\t")
+
             if args.squiggle:
                 ar = []
                 for i in f5_data[readID]['signal']:
@@ -179,6 +186,11 @@ def main():
             cell = None
             score = None
             direction = None
+        if args.test:
+            if count >= args.test:
+                break
+
+        count += 1
     if args.squiggle:
         w.close()
 
@@ -288,28 +300,29 @@ def read_fastq(filename, batch=1):
 
 
 
-def read_multi_fast5(filename):
+def read_multi_fast5(filename, readID):
     '''
     read multifast5 file and return data
     '''
     f5_dic = {}
     with h5py.File(filename, 'r') as hdf:
-        for read in list(hdf.keys()):
-            readID = hdf[read]['Raw'].attrs['read_id'].decode()
-            f5_dic[readID] = {'signal': [], 'readID': '', 'digitisation': 0.0,
-                            'offset': 0.0, 'range': 0.0, 'sampling_rate': 0.0}
-            try:
-                for col in hdf[read]['Raw/Signal'][()]:
-                    f5_dic[readID]['signal'].append(int(col))
+        # for read in list(hdf.keys()):
+        read = "read_{}".format(readID)
+        f5_dic[readID] = {'signal': [], 'readID': '', 'digitisation': 0.0,
+                        'offset': 0.0, 'range': 0.0, 'sampling_rate': 0.0}
+        try:
+            # for col in hdf[read]['Raw/Signal'][()]:
+                # f5_dic[readID]['signal'].append(int(col))
+            f5_dic[readID]['signal'] = hdf[read]['Raw/Signal'][()]
 
-                f5_dic[readID]['readID'] = hdf[read]['Raw'].attrs['read_id'].decode()
-                f5_dic[readID]['digitisation'] = hdf[read]['channel_id'].attrs['digitisation']
-                f5_dic[readID]['offset'] = hdf[read]['channel_id'].attrs['offset']
-                f5_dic[readID]['range'] = float("{0:.2f}".format(hdf[read]['channel_id'].attrs['range']))
-                f5_dic[readID]['sampling_rate'] = hdf[read]['channel_id'].attrs['sampling_rate']
-            except:
-                traceback.print_exc()
-                print_err("extract_fast5():failed to read readID: {}".format(read))
+            f5_dic[readID]['readID'] = hdf[read]['Raw'].attrs['read_id'].decode()
+            f5_dic[readID]['digitisation'] = hdf[read]['channel_id'].attrs['digitisation']
+            f5_dic[readID]['offset'] = hdf[read]['channel_id'].attrs['offset']
+            f5_dic[readID]['range'] = float("{0:.2f}".format(hdf[read]['channel_id'].attrs['range']))
+            f5_dic[readID]['sampling_rate'] = hdf[read]['channel_id'].attrs['sampling_rate']
+        except:
+            traceback.print_exc()
+            print_err("extract_fast5():failed to read readID: {}".format(read))
     return f5_dic
 
 def get_segments(readID, seq, SAMPLES, DIGITISATION, OFFSET, RANGE, SAMPLE_RATE):
