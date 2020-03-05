@@ -163,9 +163,9 @@ def read_seq_sum(filename, f5_path):
                 fast5_file = os.path.join(dirpath, fast5)
                 f5_dic[fast5] = fast5_file
     dic = {}
-    qscore_col = False
-    fast5_col = False
-    readID_col = False
+    qscore_col = None
+    fast5_col = None
+    readID_col = None
     head = True
     with open(filename, 'r') as f:
         for l in f:
@@ -180,7 +180,7 @@ def read_seq_sum(filename, f5_path):
                     if l[i] == "read_id":
                         readID_col = i
 
-                if not qscore_col or not fast5_col or not readID_col:
+                if qscore_col is None or fast5_col is None or readID_col is None:
                     print_err("columns not found: qscore: {} , fast5: {} , readID: {}". format(qscore_col, fast5_col, readID_col ))
                     sys.exit()
                 continue
