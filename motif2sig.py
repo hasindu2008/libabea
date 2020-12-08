@@ -200,7 +200,7 @@ def main():
                 segs_pos = list(segs.keys())
                 segs_pos.sort()
                 for pos in segs_pos:
-                    for i, j, k in segs[segs_pos]:
+                    for i, j, k in segs[pos]:
                         if segs[i][1] < 0:
                             sig_start = segs[i-1][2]
                         else:
