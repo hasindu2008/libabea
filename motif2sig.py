@@ -158,8 +158,9 @@ def main():
                 print_err("Failed alignment: {}".format(readID))
                 continue
             try:
-                nt_start = data[readID]['start']
-                nt_stop = data[readID]['stop']
+                # index is off by 2 starting at 0
+                nt_start = data[readID]['start'] - 2
+                nt_stop = data[readID]['stop'] - 2
                 if segs[nt_start][1] < 0:
                     raw_start = segs[nt_start-1][2]
                 else:
@@ -180,8 +181,8 @@ def main():
                 continue
 
             # readID, nt_start, nt_stop, raw_start, raw_stop
-            print(readID, barcode, cell, score, direction, seq_length, nt_start,
-                  nt_stop, raw_start, raw_stop, sep="\t")
+            print(readID, barcode, cell, score, direction, seq_length, data[readID]['start'],
+                  data[readID]['stop'], raw_start, raw_stop, sep="\t")
 
             if args.squiggle:
                 ar = []
@@ -195,21 +196,26 @@ def main():
                 w.write("{}\t{}\n".format(readID, '\t'.join(ar)))
 
             if args.sig_align:
-                a.write("{}\t{}\t{}\t{}\n".format("readID", "base_position", "sig_start", "sig_stop"))
+                a.write("{}\t{}\t{}\t{}\t{}\t{}\n".format("readID", "base", "seg_index", "base_position", "sig_start", "sig_stop"))
                 # get the positions then sort them to loop over
                 segs_pos = list(segs.keys())
                 segs_pos.sort()
                 for pos in segs_pos:
-                    for i, j, k in segs[pos]:
-                        if segs[i][1] < 0:
-                            sig_start = segs[i-1][2]
+                    i, j, k = segs[pos]
+                    base = data[readID]['seq'][i]
+                    try:
+                        if segs[pos][1] < 0:
+                            sig_start = segs[pos-1][2]
                         else:
-                            sig_start = segs[i][1]
-                        if segs[i][2] < 0:
-                            sig_stop = segs[i+1][1]
+                            sig_start = segs[pos][1]
+                        if segs[pos][2] < 0:
+                            sig_stop = segs[pos+1][1]
                         else:
-                            sig_stop = segs[i][2]
-                        a.write("{}\t{}\t{}\t{}\n".format(readID, i, sig_start, sig_stop))
+                            sig_stop = segs[pos][2]
+                        a.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(readID, base, pos, i, sig_start, sig_stop))
+                    except:
+                        print_err("{} pos missing: {}".format(readID, pos))
+                        continue
 
 
             # plot seg cuts to visualise, I should be able to confirm with JNN
