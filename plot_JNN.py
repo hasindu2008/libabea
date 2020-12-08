@@ -106,9 +106,10 @@ def main():
     #main logic goes here
 
     seg_dic = get_segs(args.segs)
-
+    c = 0
     with open(args.squigs, 'r') as f:
         for l in f:
+            c += 1
             l = l.strip("\n")
             l = l.split("\t")
             readID = l[0]
@@ -127,6 +128,7 @@ def main():
 
             plt.plot(sig, color='k')
             plt.show()
+            # plt.savefig("test_{}.png".format(c))
             plt.clf()
 
 
