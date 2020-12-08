@@ -196,16 +196,20 @@ def main():
 
             if args.sig_align:
                 a.write("{}\t{}\t{}\t{}\n".format("readID", "base_position", "sig_start", "sig_stop"))
-                for i, j, k in segs:
-                    if segs[i][1] < 0:
-                        sig_start = segs[i-1][2]
-                    else:
-                        sig_start = segs[i][1]
-                    if segs[i][2] < 0:
-                        sig_stop = segs[i+1][1]
-                    else:
-                        sig_stop = segs[i][2]
-                    a.write("{}\t{}\t{}\t{}\n".format(readID, i, sig_start, sig_stop))
+                # get the positions then sort them to loop over
+                segs_pos = list(segs.keys())
+                segs_pos.sort()
+                for pos in segs_pos:
+                    for i, j, k in segs[segs_pos]:
+                        if segs[i][1] < 0:
+                            sig_start = segs[i-1][2]
+                        else:
+                            sig_start = segs[i][1]
+                        if segs[i][2] < 0:
+                            sig_stop = segs[i+1][1]
+                        else:
+                            sig_stop = segs[i][2]
+                        a.write("{}\t{}\t{}\t{}\n".format(readID, i, sig_start, sig_stop))
 
 
             # plot seg cuts to visualise, I should be able to confirm with JNN
