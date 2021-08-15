@@ -30,7 +30,7 @@ def abea_python(read, samples, digitisation, offset, range, sample_rate):
     # code above this to create the batch of data as run_abea_on_batch with expect
     # alternatively we can have 2 function calls, one for single, one for batch
 
-    run_abea_on_read(<abea_out_t *> output, <int32_t> READ_LEN, <char *> read_array, <int64_t> samples_array.shape[0], <float *> samples_array.data, <float> digitisation, <float> offset, <float> range, <float> sample_rate, <int8_t> 0)
+    run_abea_on_read(<abea_out_t *> output, <int32_t> READ_LEN, <char *> read_array, <int64_t> samples_array.shape[0], <float *> samples_array.data, <float> digitisation, <float> offset, <float> range, <float> sample_rate, <int8_t> 0, <int8_t> 0)
 
     ret = {}
     if output.align_success:

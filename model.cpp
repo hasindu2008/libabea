@@ -12,30 +12,50 @@
 #include "model.h"
 #include "f5c.h"
 
-//this function can be made more efficient by setting the address to the global variable
-void set_model(model_t* model) {
+uint32_t set_model(model_t* model, uint32_t model_id) {
+
+    uint32_t kmer_size=0;
+    uint32_t num_kmer=0;
+    float *inbuilt_model=NULL;
+
+    if(model_id==MODEL_ID_DNA_NUCLEOTIDE){
+        kmer_size=6;
+        num_kmer=4096;
+        inbuilt_model=r9_4_450bps_nucleotide_6mer_template_model_builtin_data;
+        assert(num_kmer == (uint32_t)(1 << 2*kmer_size)); //num_kmer should be 4^kmer_size
+    }
+
+    else if(model_id==MODEL_ID_RNA_NUCLEOTIDE){
+        kmer_size=5;
+        num_kmer=1024;
+        inbuilt_model=r9_4_70bps_u_to_t_rna_5mer_template_model_builtin_data;
+        assert(num_kmer == (uint32_t)(1 << 2*kmer_size)); //num_kmer should be 4^kmer_size
+    }
+    else{
+        assert(0);
+    }
+
     uint32_t i = 0;
-    for (i = 0; i < NUM_KMER; i++) {
-        model[i].level_mean =
-            r9_4_450bps_nucleotide_6mer_template_model_builtin_data[i * 4 + 0];
-        model[i].level_stdv =
-            r9_4_450bps_nucleotide_6mer_template_model_builtin_data[i * 4 + 1];
+    for (i = 0; i < num_kmer; i++) {
+        model[i].level_mean = inbuilt_model[i * 4 + 0];
+        model[i].level_stdv = inbuilt_model[i * 4 + 1];
     #ifdef LOAD_SD_MEANSSTDV
-        model[i].sd_mean =
-            r9_4_450bps_nucleotide_6mer_template_model_builtin_data[i * 4 + 2];
-        model[i].sd_stdv =
-            r9_4_450bps_nucleotide_6mer_template_model_builtin_data[i * 4 + 3];
+        model[i].sd_mean = inbuilt_model[i * 4 + 2];
+        model[i].sd_stdv = inbuilt_model[i * 4 + 3];
     #endif
     #ifdef CACHED_LOG
         model[i].level_log_stdv=log(model[i].level_stdv);
     #endif
     }
+
 #ifdef DEBUG_MODEL_PRINT
     i = 0;
     fprintf(stderr, "level_mean\tlevel_stdv\tsd_mean\tsd_stdv\n");
-    for (i = 0; i < NUM_KMER; i++) {
+    for (i = 0; i < num_kmer; i++) {
         fprintf(stderr, "%f\t%f\t%f\t%f\n", model[i].level_mean,
-                model[i].level_stdv, model[i].sd_mean, model[i].sd_stdv);
+                model[i].level_stdv, 0.0, 0.0);
     }
 #endif
+
+    return kmer_size;
 }

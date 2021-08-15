@@ -1,10 +1,12 @@
 /* @f5c
 **
-** f5c interface 
+** f5c interface
 ** @author: Hasindu Gamaarachchi (hasindu@unsw.edu.au)
 ** @@
 ******************************************************************************/
-
+#ifdef  NDEBUG
+    #undef NDEBUG
+#endif
 #include <assert.h>
 #include <math.h>
 #include <pthread.h>
@@ -31,8 +33,16 @@ core_t* init_core(opt_t opt) {
     core->model = (model_t*)malloc(sizeof(model_t) * NUM_KMER); //4096 is 4^6 which is hardcoded now
     MALLOC_CHK(core->model);
 
-    //load the model 
-    set_model(core->model);
+    //load the model
+    if(opt.rna){
+        INFO("%s","builtin RNA nucleotide model loaded");
+        uint32_t kmer_size=set_model(core->model, MODEL_ID_RNA_NUCLEOTIDE);
+        assert(kmer_size==5);
+    }
+    else{
+        uint32_t kmer_size=set_model(core->model, MODEL_ID_DNA_NUCLEOTIDE);
+        assert(kmer_size==6);
+    }
 
     core->opt = opt;
 
@@ -99,7 +109,7 @@ db_t* init_db(core_t* core) {
 void free_db_tmp(db_t* db) {
     int32_t i = 0;
     for (i = 0; i < db->n_bam_rec; ++i) {
-       
+
         free(db->read[i]);
         free(db->f5[i]->rawptr);
         free(db->f5[i]);
@@ -125,7 +135,7 @@ void free_db(db_t* db) {
     free(db->events_per_base);
     free(db->base_to_event_map);
     free(db->read_stat_flag);
-    
+
 
     free(db);
 }
@@ -143,7 +153,9 @@ void event_single(core_t* core,db_t* db, int32_t i) {
     for (int32_t j = 0; j < nsample; j++) {
         rawptr[j] = (rawptr[j] + offset) * raw_unit;
     }
-    db->et[i] = getevents(db->f5[i]->nsample, rawptr);
+
+    int8_t rna=core->opt.rna;
+    db->et[i] = getevents(db->f5[i]->nsample, rawptr, rna);
 
     // if(db->et[i].n/(float)db->read_len[i] > 20){
     //     fprintf(stderr,"%s\tevents_per_base\t%f\tread_len\t%d\n",bam_get_qname(db->bam_rec[i]), db->et[i].n/(float)db->read_len[i],db->read_len[i]);
@@ -152,6 +164,17 @@ void event_single(core_t* core,db_t* db, int32_t i) {
     //get the scalings
     db->scalings[i] = estimate_scalings_using_mom(
         db->read[i], db->read_len[i], core->model, db->et[i]);
+
+    //If sequencing RNA, reverse the events to be 3'->5'
+    if (rna){
+        event_t *events = db->et[i].event;
+        size_t n_events = db->et[i].n;
+        for (size_t i = 0; i < n_events/2; ++i) {
+            event_t tmp_event = events[i];
+            events[i]=events[n_events-1-i];
+            events[n_events-1-i]=tmp_event;
+        }
+    }
 
 }
 
@@ -243,7 +266,7 @@ void process_single(core_t* core, db_t* db,int32_t i) {
         return;
     }
 
-    
+
 }
 
 void init_opt(opt_t* opt) {

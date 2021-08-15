@@ -6,7 +6,7 @@
 #include "libabea.h"
 
 void print(core_t *core, db_t *db){
- 
+
     int32_t i = 0;
     for (i = 0; i < db->n_bam_rec; i++) {
         fprintf(stderr,">%s\tLN:%d\tEVENTSTART:%d\tEVENTEND:%d\t{raw_start_index,length,mean.stdv}\n",
@@ -65,14 +65,14 @@ void print(core_t *core, db_t *db){
             if(event_start!=-1){
                 raw_start = (int32_t)db->et[i].event[event_start].start; //raw signal index start
             }
-            
+
 
             if(event_end!=-1){
                 raw_end = (int32_t)db->et[i].event[event_end].start + (int32_t)db->et[i].event[event_end].length ; //raw signal end (not inclusive)
             }
             fprintf(stderr,"%d\t%d\t%d\n",j+2,raw_start,raw_end);
         }
-        
+
     }
 }
 
@@ -94,12 +94,12 @@ void set_output(abea_out_t *output, core_t *core, db_t *db){
             if(event_start!=-1){
                 raw_start = (int32_t)db->et[i].event[event_start].start; //raw signal inde start
             }
-            
+
 
             if(event_end!=-1){
                 raw_end = (int32_t)db->et[i].event[event_end].start + (int32_t)db->et[i].event[event_end].length ; //raw signal end (not inclusive)
             }
-            
+
             output->base_index[j]=j+2;
             output->raw_start_index[j]=raw_start;
             output->raw_end_index[j]=raw_end;
@@ -108,11 +108,21 @@ void set_output(abea_out_t *output, core_t *core, db_t *db){
         }
         output->size_of_arrays=n_kmers;
         output->align_success=1;
-        
+
 }
-    
-void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t n_samples, float *samples, float digitisation, float offset, float range, float sample_rate, int8_t debug){
-  
+
+//replace u with t in a string
+static inline void replace_char(char *str, char u, char t){
+    while(*str){
+        if(*str == u){
+            *str = t;
+        }
+        str++;
+    }
+}
+
+void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t n_samples, float *samples, float digitisation, float offset, float range, float sample_rate, int8_t debug, int8_t rna){
+
     if(debug){
         fprintf(stderr,"readlen %d\n",read_len);
         fprintf(stderr,"n_samples %ld\n",n_samples);
@@ -133,7 +143,9 @@ void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t 
     /************************** init - done once **********************************/
     opt_t opt;
     init_opt(&opt); //initialise options to defaults
-
+    if(rna==1){
+        opt.rna=1;
+    }
     //initialise the core data structure
     core_t* core = init_core(opt);
 
@@ -144,19 +156,24 @@ void run_abea_on_read(abea_out_t *output, int32_t read_len, char *read, int64_t 
     db->n_bam_rec=1;
     int i=0; //index of the read in batch - always 0 for now until expansion
 
+
 	assert(read_len==(int32_t)strlen(read));
 
 
 /***************** Process a single read  *********************************/
-// this part can be looped for multiple reads manually, but keep i as 0 always, 
+// this part can be looped for multiple reads manually, but keep i as 0 always,
 
     db->read_stat_flag[i] = 0; //reset the flag
 
     //set the fastq
     db->read_len[i] = read_len;
-    db->read[i] = (char*)malloc(read_len + 1); 
+    db->read[i] = (char*)malloc(read_len + 1);
     strcpy(db->read[i],read);
-	
+    if(rna==1){
+        replace_char(db->read[i], 'U', 'T');
+    }
+
+
     //set the fast5
     db->f5[i] = (fast5_t*)calloc(1, sizeof(fast5_t));
     db->f5[i]->nsample= n_samples;

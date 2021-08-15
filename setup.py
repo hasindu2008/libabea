@@ -10,7 +10,7 @@ from Cython.Build import cythonize
 
 math_lib = ['m']
 
-extra_compile_args = ['-Wno-strict-prototypes']
+extra_compile_args = ['-g', '-Wall', '-O2', '-std=c++11']
 
 py_inc = [get_python_inc()]
 
@@ -21,20 +21,20 @@ cmdclass = {'build_py': build_py}
 cmdclass.update({'build_ext': build_ext})
 packages=['test']
 
-extensions = [Extension("test.abea", ["abea.pyx", "libabea.cpp", "align.cpp", "events.cpp", "f5c.cpp", "model.cpp"],
-                      extra_compile_args=["-std=c++11"], 
+extensions = [Extension("abea", ["abea.pyx", "libabea.cpp", "align.cpp", "events.cpp", "f5c.cpp", "model.cpp"],
+                      extra_compile_args=extra_compile_args,
                       libraries=math_lib,
-                      include_dirs=py_inc + np_inc)]
+                      include_dirs=py_inc + np_inc,
+                      language = 'c++')]
 
 setup(name = 'test',
-      version='0.0.1',
+      version='0.0.2',
       requires=['numpy (>=1.3.0)'],
       description='abea',
       author='Hasindu Gamaarachchi and James Ferguson',
       author_email='hasindu@unsw.edu.au',
       maintainer='Hasindu Gamaarachchi',
       maintainer_email='hasindu@unsw.edu.au',
-      packages=packages,
       cmdclass=cmdclass,
       ext_modules=cythonize(extensions),
       )

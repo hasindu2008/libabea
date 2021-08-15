@@ -39,13 +39,11 @@ $(BUILD_DIR)/align.o: align.cpp f5c.h
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 pylib:
-	# python3 setup.py build && cp build/lib.linux-x86_64-3.5/test/abea.cpython-35m-x86_64-linux-gnu.so ./
-	python3 setup.py build && cp build/lib.linux-x86_64-3.6/test/abea.cpython-36m-x86_64-linux-gnu.so ./
+	python3 setup.py build && cp build/lib.*/*.so  ./
 
 clean:
 	rm -rf $(BINARY) $(BUILD_DIR)/*.o
 	python3 setup.py clean
 	rm -rf build
-	# rm -f abea.cpython-35m-x86_64-linux-gnu.so
-	rm -f abea.cpython-36m-x86_64-linux-gnu.so
+	rm -f *.so
 	rm -f out.txt outpy.txt

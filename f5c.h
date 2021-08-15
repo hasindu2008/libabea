@@ -1,6 +1,6 @@
 /* @f5c
 **
-** f5c interface 
+** f5c interface
 ** @author: Hasindu Gamaarachchi (hasindu@unsw.edu.au)
 ** @@
 ******************************************************************************/
@@ -26,7 +26,8 @@
 
 
 /* other hard coded options */
-
+#define MODEL_ID_DNA_NUCLEOTIDE 1
+#define MODEL_ID_RNA_NUCLEOTIDE 2
 
 //#define ALIGN_2D_ARRAY 1 //for CPU whether to use a 1D array or a 2D array
 // note : (2D arrays are very slow due to mallocs when the number of threads is high)
@@ -41,7 +42,7 @@
 typedef struct {
 
     int32_t batch_size;         //max reads loaded at once
-
+    int8_t rna;         //if 0 dna, otherwise rna
 } opt_t;
 
 /* data structures */
@@ -221,8 +222,8 @@ void free_db(db_t* db);
 void init_opt(opt_t* opt);
 void process_single(core_t* core, db_t* db,int32_t i);
 
-event_table getevents(size_t nsample, float* rawptr);
-void set_model(model_t* model);
+event_table getevents(size_t nsample, float* rawptr, int8_t rna);
+uint32_t set_model(model_t* model, uint32_t model_id);
 scalings_t estimate_scalings_using_mom(char* sequence, int32_t sequence_len,
                                        model_t* pore_model, event_table et);
 int32_t align(AlignedPair* out_2, char* sequence, int32_t sequence_len,
