@@ -7,7 +7,7 @@ Python library bindings for Adaptive Banded Event Alignment (ABEA) for Nanopore 
 ```sh
 pip3 install cython
 python3 setup.py build
-cp build/lib.linux-x86_64-3.5/test/abea.cpython-35m-x86_64-linux-gnu.so ./
+cp build/lib.*/*.so  ./
 ```
 
 # Launch a test run
