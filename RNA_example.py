@@ -57,9 +57,9 @@ def main():
     for data in fastq_data:
         for readID in list(data.keys()):
             if readID in f5_data.keys():
-                print(readID, data[readID]['seq'],
-                      f5_data[readID]['digitisation'], f5_data[readID]['offset'],
-                      f5_data[readID]['range'], f5_data[readID]['sampling_rate'], args.RNA, sep="\t")
+                # print(readID, data[readID]['seq'],
+                #       f5_data[readID]['digitisation'], f5_data[readID]['offset'],
+                #       f5_data[readID]['range'], f5_data[readID]['sampling_rate'], args.RNA, sep="\t")
                 segs = get_segments(readID, data[readID]['seq'], f5_data[readID]['signal'],
                                     f5_data[readID]['digitisation'], f5_data[readID]['offset'],
                                     f5_data[readID]['range'], f5_data[readID]['sampling_rate'], args.RNA)
