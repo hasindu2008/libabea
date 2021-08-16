@@ -30,19 +30,21 @@ core_t* init_core(opt_t opt) {
     MALLOC_CHK(core);
 
     //model
-    core->model = (model_t*)malloc(sizeof(model_t) * NUM_KMER); //4096 is 4^6 which is hardcoded now
+    core->model = (model_t*)malloc(sizeof(model_t) * MAX_NUM_KMER); //4096 is 4^6 which is hardcoded now
     MALLOC_CHK(core->model);
 
     //load the model
+    uint32_t kmer_size=0;
     if(opt.rna){
         INFO("%s","builtin RNA nucleotide model loaded");
-        uint32_t kmer_size=set_model(core->model, MODEL_ID_RNA_NUCLEOTIDE);
+        kmer_size=set_model(core->model, MODEL_ID_RNA_NUCLEOTIDE);
         assert(kmer_size==5);
     }
     else{
-        uint32_t kmer_size=set_model(core->model, MODEL_ID_DNA_NUCLEOTIDE);
+        kmer_size=set_model(core->model, MODEL_ID_DNA_NUCLEOTIDE);
         assert(kmer_size==6);
     }
+    core->kmer_size = kmer_size;
 
     core->opt = opt;
 
@@ -163,7 +165,7 @@ void event_single(core_t* core,db_t* db, int32_t i) {
 
     //get the scalings
     db->scalings[i] = estimate_scalings_using_mom(
-        db->read[i], db->read_len[i], core->model, db->et[i]);
+            db->read[i], db->read_len[i], core->model, core->kmer_size, db->et[i]);
 
     //If sequencing RNA, reverse the events to be 3'->5'
     if (rna){
@@ -183,8 +185,8 @@ void event_single(core_t* core,db_t* db, int32_t i) {
 
 void align_single(core_t* core, db_t* db, int32_t i) {
     db->n_event_align_pairs[i] = align(
-            db->event_align_pairs[i], db->read[i], db->read_len[i], db->et[i],
-            core->model, db->scalings[i], db->f5[i]->sample_rate);
+                    db->event_align_pairs[i], db->read[i], db->read_len[i], db->et[i],
+                    core->model, core->kmer_size, db->scalings[i], db->f5[i]->sample_rate);
         //fprintf(stderr,"readlen %d,n_events %d\n",db->read_len[i],n_event_align_pairs);
 }
 
@@ -205,7 +207,7 @@ void process_single(core_t* core, db_t* db,int32_t i) {
     db->n_event_alignment[i] = 0;
     db->events_per_base[i] = 0; //todo : is double needed? not just float?
 
-    int32_t n_kmers = db->read_len[i] - KMER_SIZE + 1;
+    int32_t n_kmers = db->read_len[i] - core->kmer_size + 1;
     db->base_to_event_map[i]=(index_pair_t*)(malloc(sizeof(index_pair_t) * n_kmers));
     MALLOC_CHK(db->base_to_event_map[i]);
 
@@ -224,7 +226,8 @@ void process_single(core_t* core, db_t* db,int32_t i) {
         //todo : verify if this n is needed is needed
         db->n_event_alignment[i] = postalign(
             db->event_alignment[i],db->base_to_event_map[i], &db->events_per_base[i], db->read[i],
-            n_kmers, db->event_align_pairs[i], db->n_event_align_pairs[i]);
+            n_kmers, db->event_align_pairs[i], db->n_event_align_pairs[i], core->kmer_size);
+
 
         //fprintf(stderr,"n_event_alignment %d\n",n_events);
 
@@ -233,7 +236,7 @@ void process_single(core_t* core, db_t* db,int32_t i) {
 
         // internally this function will set shift/scale/etc of the pore model
         bool calibrated = recalibrate_model(
-            core->model, db->et[i], &db->scalings[i],
+            core->model, core->kmer_size, db->et[i], &db->scalings[i],
             db->event_alignment[i], db->n_event_alignment[i], 1);
 
         // QC calibration

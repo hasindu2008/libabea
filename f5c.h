@@ -13,9 +13,9 @@
 #include <stdbool.h>
 
 /* hard coded numbers*/
-#define KMER_SIZE 6 //hard coded for now; todo : change to dynamic?
-#define NUM_KMER 4096   //num k-mers for 6-mers DNA
-#define NUM_KMER_METH 15625 //number k-mers for 6-mers with methylated C
+#define MAX_KMER_SIZE 6 //maximum k-mer size
+#define MAX_NUM_KMER 4096   //maximum number of k-mers in nucleotide model
+
 //#define HAVE_CUDA 1 //if compiled for CUDA or not
 #define ALN_BANDWIDTH 100 // the band size in adaptive_banded_dynamic_alignment
 
@@ -148,7 +148,7 @@ typedef struct {
 typedef struct {
     // ref data
     //char* ref_name;
-    char ref_kmer[KMER_SIZE + 1];
+    char ref_kmer[MAX_KMER_SIZE + 1];
     int32_t ref_position;
 
     // event data
@@ -158,7 +158,7 @@ typedef struct {
     bool rc;
 
     // hmm data
-    char model_kmer[KMER_SIZE + 1];
+    char model_kmer[MAX_KMER_SIZE + 1];
     char hmm_state;
 } event_alignment_t;
 
@@ -203,6 +203,7 @@ typedef struct {
 
     // models
     model_t* model; //dna model
+    uint32_t kmer_size;
 
     // options
     opt_t opt;
@@ -225,14 +226,14 @@ void process_single(core_t* core, db_t* db,int32_t i);
 event_table getevents(size_t nsample, float* rawptr, int8_t rna);
 uint32_t set_model(model_t* model, uint32_t model_id);
 scalings_t estimate_scalings_using_mom(char* sequence, int32_t sequence_len,
-                                       model_t* pore_model, event_table et);
+                                       model_t* pore_model, uint32_t kmer_size, event_table et);
 int32_t align(AlignedPair* out_2, char* sequence, int32_t sequence_len,
-              event_table events, model_t* models, scalings_t scaling,
+              event_table events, model_t* models, uint32_t kmer_size, scalings_t scaling,
               float sample_rate);
-int32_t postalign(event_alignment_t* alignment, index_pair_t* base_to_event_map, double* events_per_base,
+int32_t postalign(event_alignment_t* alignment, index_pair_t* base_to_event_map,double* events_per_base,
                   char* sequence, int32_t n_kmers, AlignedPair* event_alignment,
-                  int32_t n_events);
-bool recalibrate_model(model_t* pore_model, event_table et,
+                  int32_t n_events, uint32_t kmer_size);
+bool recalibrate_model(model_t* pore_model, uint32_t kmer_size, event_table et,
                        scalings_t* scallings,
                        const event_alignment_t* alignment_output,
                        int32_t num_alignments, bool scale_var);

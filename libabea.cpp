@@ -52,7 +52,7 @@ void print(core_t *core, db_t *db){
         if((db->read_stat_flag[i])&(FAILED_ALIGNMENT)){
             continue;
         }
-        int32_t n_kmers = db->read_len[i] - KMER_SIZE + 1;
+        int32_t n_kmers = db->read_len[i] - core->kmer_size + 1;
         fprintf(stderr,"base_index\tstart_raw_index(inclusive)\tend_raw_index(non inclusive)\n");
         for(int j=0; j<n_kmers; j++){
             index_pair_t elem = db->base_to_event_map[i][j];
@@ -82,7 +82,7 @@ void set_output(abea_out_t *output, core_t *core, db_t *db){
             output->align_success=0;
             return;
         }
-        int32_t n_kmers = db->read_len[i] - KMER_SIZE + 1;
+        int32_t n_kmers = db->read_len[i] - core->kmer_size + 1;
         for(int j=0; j<n_kmers; j++){
             index_pair_t elem = db->base_to_event_map[i][j];
             int32_t event_start = elem.start; //eventindex start (inclusive)
