@@ -36,7 +36,7 @@ core_t* init_core(opt_t opt) {
     //load the model
     uint32_t kmer_size=0;
     if(opt.rna){
-        INFO("%s","builtin RNA nucleotide model loaded");
+        //INFO("%s","builtin RNA nucleotide model loaded");
         kmer_size=set_model(core->model, MODEL_ID_RNA_NUCLEOTIDE);
         assert(kmer_size==5);
     }
