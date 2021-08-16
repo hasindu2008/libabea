@@ -44,6 +44,6 @@ pylib:
 clean:
 	rm -rf $(BINARY) $(BUILD_DIR)/*.o
 	python3 setup.py clean
-	rm -rf build
+	rm -rf build abea.cpp
 	rm -f *.so
 	rm -f out.txt outpy.txt
