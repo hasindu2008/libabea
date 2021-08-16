@@ -38,6 +38,10 @@ def main():
                         help="fast5 file")
     parser.add_argument("-s", "--save",
                         help="save align file")
+    parser.add_argument("--signal",
+                        help="save signal file")
+    parser.add_argument("-c", "--pA_convert", action="store_true",
+                        help="convert squiggles to pA")
     parser.add_argument("--RNA", action="store_true",
                         help="Reads are from RNA sample")
 
@@ -49,11 +53,13 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-
+    if args.signal:
+        s = open(args.signal, 'w')
     a = open(args.save, 'w')
     fastq_data = read_fastq(args.fastq)
     fast5_filepath = args.fast5
     f5_data = read_multi_fast5(fast5_filepath)
+    a.write("{}\t{}\t{}\t{}\t{}\t{}\n".format("readID", "base", "seg_index", "base_position", "sig_start", "sig_stop"))
     for data in fastq_data:
         for readID in list(data.keys()):
             if readID in f5_data.keys():
@@ -70,7 +76,6 @@ def main():
                     print_err("Failed alignment: {}".format(readID))
                     continue
                 else:
-                    a.write("{}\t{}\t{}\t{}\t{}\t{}\n".format("readID", "base", "seg_index", "base_position", "sig_start", "sig_stop"))
                     # get the positions then sort them to loop over
                     segs_pos = list(segs.keys())
                     segs_pos.sort()
@@ -91,6 +96,17 @@ def main():
                             print_err("{} pos missing: {}".format(readID, pos))
                             continue
                 segs = None
+
+                if args.signal:
+                    ar = []
+                    if args.pA_convert:
+                        pa_sig = convert_to_pA(f5_data[readID])
+                        for i in pa_sig:
+                            ar.append(str(i))
+                    else:
+                        for i in f5_data[readID]['signal']:
+                            ar.append(str(i))
+                    s.write("{}\t{}\n".format(readID, '\t'.join(ar)))
 
 
     a.close()
@@ -176,6 +192,24 @@ def read_multi_fast5(filename):
 
     return f5_dic
 
+
+def convert_to_pA(d):
+    '''
+    convert raw signal data to pA using digitisation, offset, and range
+    float raw_unit = range / digitisation;
+    for (int32_t j = 0; j < nsample; j++) {
+        rawptr[j] = (rawptr[j] + offset) * raw_unit;
+    }
+    '''
+    digitisation = d['digitisation']
+    range = d['range']
+    offset = d['offset']
+    raw_unit = range / digitisation
+    new_raw = []
+    for i in d['signal']:
+        j = (i + offset) * raw_unit
+        new_raw.append("{0:.2f}".format(round(j,2)))
+    return new_raw
 
 
 

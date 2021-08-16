@@ -113,23 +113,34 @@ def main():
             l = l.strip("\n")
             l = l.split("\t")
             readID = l[0]
-            sig = np.array([int(i) for i in l[1:]], dtype=int)
+            sig = np.array([float(i) for i in l[1:]], dtype=float)
 
             fig = plt.figure(1)
             #fig.subplots_adjust(hspace=0.1, wspace=0.01)
             ax = fig.add_subplot(111)
-
+            length = len(sig)
             # Show segment lines
-
-            i = int(seg_dic[readID][7])
-            j = int(seg_dic[readID][8])
-            ax.axvline(x=i, color='m')
-            ax.axvline(x=j, color='m')
+            for base, index, b_pose, r_start, r_end in seg_dic[readID]:
+                i = int(r_start)
+                j = int(r_end)
+                if i > j:
+                    i, j = j, i
+                if i == j:
+                    j = j + 1
+                half_diff = (j-i) / 2
+                mid = i + half_diff
+                print(i, j, length)
+                print(sig[i:j])
+                y = max(sig[i:j]) + 20
+                ax.text(mid, y, base)
+                ax.axvline(x=i, color='m')
+                ax.axvline(x=j, color='m')
 
             plt.plot(sig, color='k')
             plt.show()
             # plt.savefig("test_{}.png".format(c))
             plt.clf()
+            sys.exit()
 
 
 
@@ -141,14 +152,16 @@ def main():
 
 def get_segs(filename):
     '''
-    get ses and return dic with list items
+    get segs and return dic with list items
     '''
     dic = {}
     with open(filename, 'r') as f:
         for l in f:
             l = l.strip('\n')
             l = l.split('\t')
-            dic[l[0]] = l[1:]
+            if l[0] not in list(dic.keys()):
+                dic[l[0]] = []
+            dic[l[0]].append(l[1:])
     return dic
 
 if __name__ == '__main__':
