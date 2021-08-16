@@ -11,10 +11,13 @@ from libabea cimport *
 
 np.import_array()
 
-def abea_python(read, samples, digitisation, offset, range, sample_rate):
+def abea_python(read, samples, digitisation, offset, range, sample_rate, RNA=False):
 
     # this won't work for batching, but code in motif2sig.py can be ported
     # to support batching
+    rna_switch = 0
+    if RNA:
+        rna_switch = 1
     samples_floats = [float(i) for i in samples]
     cdef np.ndarray[np.float32_t,ndim=1] samples_array
     samples_array = np.ascontiguousarray(samples_floats, dtype=np.float32)
@@ -29,8 +32,9 @@ def abea_python(read, samples, digitisation, offset, range, sample_rate):
 
     # code above this to create the batch of data as run_abea_on_batch with expect
     # alternatively we can have 2 function calls, one for single, one for batch
+    # last argument of run_abea_on_read, 0=DNA, 1=RNA
 
-    run_abea_on_read(<abea_out_t *> output, <int32_t> READ_LEN, <char *> read_array, <int64_t> samples_array.shape[0], <float *> samples_array.data, <float> digitisation, <float> offset, <float> range, <float> sample_rate, <int8_t> 0, <int8_t> 0)
+    run_abea_on_read(<abea_out_t *> output, <int32_t> READ_LEN, <char *> read_array, <int64_t> samples_array.shape[0], <float *> samples_array.data, <float> digitisation, <float> offset, <float> range, <float> sample_rate, <int8_t> 0, <int8_t> rna_switch)
 
     ret = {}
     if output.align_success:
@@ -38,6 +42,7 @@ def abea_python(read, samples, digitisation, offset, range, sample_rate):
             ret[i] = [output.base_index[i], output.raw_start_index[i], output.raw_end_index[i]]
     else:
         ret['FAIL'] = ''
+        print("align_success:", output.align_success)
 
     free(output.base_index)
     free(output.raw_start_index)
